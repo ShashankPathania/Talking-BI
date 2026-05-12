@@ -1,6 +1,6 @@
-# Talking BI v2
+# Talking BI
 
-Talking BI v2 is a FastAPI-based conversational business intelligence application for exploring uploaded spreadsheets or registered database tables with natural-language prompts.
+Talking BI  is a FastAPI-based conversational business intelligence application for exploring uploaded spreadsheets or registered database tables with natural-language prompts.
 
 The project combines:
 
