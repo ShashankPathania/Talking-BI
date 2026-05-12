@@ -1,0 +1,64 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Build / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Test / coverage / caches
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# Environment and local secrets
+.env
+.env.local
+
+# Local runtime data
+storage/
+_tmp/
+_tmp_tests/
+*.db
+*.sqlite
+*.duckdb
+*.log
+.deepeval/
+pytest-cache-files-*/
+
+# Editor / OS
+.vscode/
+.idea/
+.cursor/
+.DS_Store
+Thumbs.db
+
+# Internal working notes not needed in public repo
+FOUNDATION_BRIEF.md
+PROJECT_STATE.md
+TASK_QUEUE.md
+
+# Local scratch scripts and output artifacts
+/debug_*.py
+/verify_*.py
+/test_*.py
+/debug_*.txt
+/pytest_output.txt
+/test_output.txt
+/robustness_results.txt
+/failures.txt
+/v*_results.txt
+/v*_verification.txt

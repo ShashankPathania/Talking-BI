@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Talking BI MVP v2</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/styles.css">
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="logo">
+          <svg viewBox="0 0 24 24" width="28" height="28" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+          </svg>
+          <h1>Talking BI MVP</h1>
+        </div>
+        <span class="status-pill" id="system-status">Checking...</span>
+      </div>
+
+      <nav class="sidebar-nav">
+        <section class="nav-section">
+          <div class="section-head">
+            <h2>Data Source</h2>
+            <button id="refresh-datasets" class="icon-btn" title="Refresh datasets">
+              <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+            </button>
+          </div>
+          
+          <label class="field">
+            <span>Active dataset</span>
+            <select id="dataset-select" class="glass-select"></select>
+          </label>
+
+          <div class="dataset-actions">
+            <button id="btn-show-upload" class="tab-btn active">Upload</button>
+            <button id="btn-show-connect" class="tab-btn">Connect DB</button>
+          </div>
+
+          <form id="upload-form" class="stacked-form glass-form tab-content active">
+            <label class="field">
+              <span>CSV or Excel File</span>
+              <input id="dataset-file" type="file" accept=".csv,.xls,.xlsx" required class="file-input">
+            </label>
+            <label class="field">
+              <span>Name (Optional)</span>
+              <input id="dataset-name" type="text" placeholder="e.g. Q3 Sales" class="glass-input">
+            </label>
+            <button type="submit" class="gradient-btn align-start">Upload</button>
+          </form>
+
+          <form id="connect-db-form" class="stacked-form glass-form tab-content">
+            <label class="field">
+              <span>Connection Name</span>
+              <input id="db-name" type="text" placeholder="Prod Database" required class="glass-input">
+            </label>
+            <label class="field">
+              <span>Database URL</span>
+              <input id="db-url" type="text" placeholder="postgresql://user:pass@host/db" required class="glass-input">
+            </label>
+            <label class="field">
+              <span>Table Name</span>
+              <input id="db-table" type="text" placeholder="sales_data" required class="glass-input">
+            </label>
+            <label class="field">
+              <span>Dialect</span>
+              <select id="db-dialect" class="glass-select">
+                <option value="postgresql">PostgreSQL</option>
+                <option value="mysql">MySQL</option>
+                <option value="sqlite">SQLite</option>
+              </select>
+            </label>
+            <button type="submit" class="gradient-btn align-start">Connect</button>
+          </form>
+        </section>
+
+        <section class="nav-section">
+          <div class="section-head">
+            <h2>Sessions</h2>
+            <button id="new-session" class="icon-btn" title="New Session">
+              <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            </button>
+          </div>
+          <label class="field">
+            <span>Saved sessions</span>
+            <select id="session-select" class="glass-select">
+              <option value="">New session</option>
+            </select>
+          </label>
+          <div class="session-meta">
+            <span class="muted">ID:</span>
+            <code id="session-id-display" class="glass-code">Not started</code>
+          </div>
+        </section>
+
+        <section class="nav-section suggestions-section">
+          <div class="section-head">
+            <h2>Quick Prompts</h2>
+          </div>
+          <div class="prompt-list">
+            <button class="prompt-chip" data-prompt="Full dataset report">Dataset Report</button>
+            <button class="prompt-chip" data-prompt="Show revenue trends by region">Revenue trends</button>
+            <button class="prompt-chip" data-prompt="Make it quarterly">Quarterly view</button>
+            <button class="prompt-chip" data-prompt="Highlight anomalies">Find anomalies</button>
+            <button class="prompt-chip" data-prompt="Show correlation between sales and revenue">Correlation</button>
+          </div>
+        </section>
+      </nav>
+      
+      <div id="sidebar-status" class="toast-message"></div>
+    </aside>
+
+    <main class="workspace">
+      <div class="workspace-scroll-area">
+        
+        <header class="workspace-header">
+          <div class="header-titles">
+            <h2 class="hero-title">Talking BI Canvas</h2>
+            <p class="muted">Ask natural language questions to generate charts, KPI snapshots, and grounded insights across files or live databases.</p>
+          </div>
+          <div class="header-actions">
+            <button id="export-pdf" class="ghost-btn toggle-btn">
+              <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"></path><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+              Export PDF
+            </button>
+            <button id="toggle-debug" class="ghost-btn toggle-btn">
+              <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+              Dev View
+            </button>
+          </div>
+        </header>
+
+        <div id="chat-stream" class="chat-stream">
+          <!-- Empty state -->
+          <div class="empty-state" id="empty-state">
+            <div class="empty-icon">✨</div>
+            <h3>Ready for Analysis</h3>
+            <p>Select a dataset and ask a question to begin.</p>
+          </div>
+        </div>
+
+        <div id="results-canvas" class="results-canvas hidden">
+          <!-- KPIs -->
+          <div class="canvas-section">
+             <div id="kpi-grid" class="kpi-grid"></div>
+          </div>
+          
+          <!-- Charts -->
+          <div class="canvas-section">
+             <div class="section-head canvas-head">
+               <h3>Visualizations</h3>
+               <span class="muted badge" id="chart-type-label"></span>
+             </div>
+             <div class="charts-container">
+               <div id="primary-chart" class="chart-surface primary-chart glass-panel"></div>
+               <div id="chart-gallery" class="chart-gallery"></div>
+             </div>
+          </div>
+
+          <!-- Report Accordion -->
+          <div class="canvas-section" id="report-section-container">
+            <div class="section-head canvas-head">
+              <h3>Report Summary</h3>
+            </div>
+            <div id="report-sections" class="report-sections"></div>
+          </div>
+
+          <!-- Insights -->
+          <div class="canvas-section">
+            <div class="section-head canvas-head">
+              <h3>Key Insights</h3>
+            </div>
+            <div id="insights-strip" class="insights-strip"></div>
+            <div id="warnings-strip" class="warnings-strip"></div>
+          </div>
+
+          <!-- Data Preview -->
+          <div class="canvas-section">
+            <div class="section-head canvas-head">
+              <h3>Data Preview</h3>
+            </div>
+            <div id="preview" class="table-wrap glass-panel"></div>
+          </div>
+
+        </div>
+
+        <!-- Debug Drawer -->
+        <div id="debug-drawer" class="debug-drawer hidden">
+          <h3>Developer Debug View</h3>
+          
+          <div class="debug-grid" id="debug-summary"></div>
+          
+          <div class="code-panels">
+            <div class="code-panel">
+               <h4>Query State Snapshot</h4>
+               <pre id="query-state" class="code-block"></pre>
+            </div>
+            <div class="code-panel">
+               <h4>Execution Plan</h4>
+               <pre id="execution-plan" class="code-block"></pre>
+            </div>
+          </div>
+          
+          <div class="code-panels">
+            <div class="code-panel">
+              <h4>Generated SQL</h4>
+              <pre id="debug-sql" class="code-block"></pre>
+            </div>
+             <div class="code-panel">
+              <h4>Executed SQL</h4>
+              <pre id="executed-sql" class="code-block"></pre>
+            </div>
+          </div>
+          
+           <div class="code-panels">
+            <div class="code-panel full-width">
+               <h4>Query Lineage</h4>
+               <pre id="query-history" class="code-block"></pre>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Bottom padding for sticky input -->
+        <div class="bottom-spacer"></div>
+      </div>
+
+      <!-- Sticky bottom composer -->
+      <div class="composer-container">
+        <form id="query-form" class="composer-form glass-panel">
+          <div class="composer-input-wrapper">
+             <textarea id="query-input" rows="1" placeholder="Ask a BI question (e.g. 'Show revenue trends by region')"></textarea>
+             <button type="submit" id="send-btn" class="send-btn">
+               <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+             </button>
+             <div id="loading-spinner" class="spinner hidden"></div>
+          </div>
+          <div class="composer-meta">
+            <span class="active-tag">Dataset: <span id="active-dataset-pill">None</span></span>
+          </div>
+        </form>
+      </div>
+
+    </main>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="/static/app.js"></script>
+</body>
+</html>
